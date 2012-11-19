@@ -35,8 +35,30 @@ class TrieNode
     words.push @char if @isWord
     return words
 
+  # returns the node of the last letter in the word, null if none found
+  lookup: (word) ->
+    return this if word.length == 0
+    for child in @children
+      if word[0] == child.char
+        return child.lookup word[1..]
+    return this if word.length == 1 and word[0] == @char
+    return null
+
+  # Returns the suffixes of the given word, [] if the word doesn't exist
+  suffixes: (word) ->
+    suffixes = []
+    end = @lookup word
+    return [] if not end?
+    for child in end.children
+      suffixes = suffixes.concat child.words()
+    return suffixes
+
+
 root = new TrieNode
-#root.insert 'a'
-#root.insert 'ab'
-#root.insert 'abc'
-console.log root.words()
+root.insert "bla"
+root.insert "blue"
+root.insert "bled"
+root.insert "bloom"
+
+console.log root.words "bl"
+

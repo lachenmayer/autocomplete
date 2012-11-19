@@ -19,6 +19,7 @@ In a trie, each node stores a single character (if, as in our case, you are usin
 To implement our auto-completion feature, we need to be able to perform these operations on our data structure:
 
 - insert(word)   - inserts a word into the trie (duh!), returns nothing
+- words()        - Returns all the words stored in the structure
 - suffixes(word) - returns the suffixes of the given word
 
 Every time the user finishes entering a word, (i.e. puts a space or punctuation after it or stops typing for a while), we insert the word into the trie. When the user is typing, we look up the suffixes of the current word and display them to the user. We will also have to delete non-existent words from the trie at some stage, but let's not worry about that for the moment.
@@ -60,8 +61,9 @@ Translating this into CoffeeScript:
       @children.push newChild
       newChild.insert word[1..]
 
-### Suffixes
+### Words
 
+### Suffixes
 
 
 ## Improvements
