@@ -24,13 +24,14 @@ class TrieNode
       for child in @children
         return true if child.contains word
     return false
-  
-  words: () ->
-    return [@char] if @children.length == 0 and @char? # leaf
+
+  words: ->
+    if @children.length == 0 and @char? # leaf node
+      return @char
     words = []
     for child in @children
       words = words.concat child.words()
-    return words if not @char? # root, done
+    return words if not @char? # root node
     words = ((@char + word) for word in words)
     words.push @char if @isWord
     return words
@@ -60,5 +61,5 @@ root.insert "blue"
 root.insert "bled"
 root.insert "bloom"
 
-console.log root.words "bl"
+console.log root.suffixes "bl"
 

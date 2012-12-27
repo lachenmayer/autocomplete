@@ -6,13 +6,24 @@ A text box which auto-completes any words that already exist in the box.
 
 ## Finding the right data structure
 
-As we're typing in words, we need to find a data structure which given a prefix can efficiently return us the suffixes of that word. A *trie* fits the bill perfectly:
+When we are typing words, we usually type them from start to finish. We want our auto-complete box to suggest suitable word endings for us given the letters we have already typed in. In other words, we need to find a data structure which given a prefix can efficiently return us the suffixes of that word. A *trie* fits the bill perfectly. A trie, short for retrieval tree, is a tree structure in which each node stores a single character (if, as in our case, you are using strings as keys). Each node's subtree contains all the suffixes of the given string. For example, a trie containing the words 'hello', 'here', and 'hero' structurally looks like this:
 
-(image)
+     h
+     e
+    / \
+    l  r
+    l / \
+    o e o
 
-In a trie, each node stores a single character (if, as in our case, you are using strings as keys). Each node's subtree contains all the suffixes of the given string.
+Another example, with the words 'cat', 'care', 'case':
 
-(example)
+      c
+      a
+     /|\
+    t r s
+      e e
+
+To look up the possible auto-complete suggestions, we have to search for the prefix and then return the contents of the subtree of that node. For example, with the input 'he', we should return ['llo', 're', 'ro'].
 
 ## Defining the operations
 
@@ -35,24 +46,24 @@ So, let's define a TrieNode class with a constructor that does nothing for now:
 
     class TrieNode
       constructor: (@char='', @children=[]) ->
-        undefined
 
 ### Insert
 
 Our `insert` function is going to be a recursive function. Let's pretend that we want to insert the word "hello" into a trie node. To do that, our function is going to have to do the following:
 
-- Look at the first character of the word ("h" the first time round) and will compare it to all the existing children.
+- Look at the first character of the word ("h" the first time round) and compare it to all the existing child nodes.
 
-- If a child with that character already exists, insert the rest of the word ("ello") into that child. (recursion!)
+- If a child node with that character already exists, insert the rest of the word ("ello") into that child node.
 
-- If there is no child with that character, create a new child node and insert the rest of the word ("ello") into that node.
+- If there is no child node with that character, create a new child node and insert the rest of the word ("ello") into that node.
 
-- When there are no more characters to be inserted, we're done! (This is called the base case. Every recursive function has to have one, otherwise it would never stop!)
+- When there are no more characters to be inserted, we're done! (This is called the base case. Every recursive function has to have one, otherwise it would never stop.)
 
 Translating this into CoffeeScript:
 
     insert: (word) ->
-      return if word.length == 0 # the base case!
+      if word.length == 0
+        return
       for child in @children
         if word[0] == child.char
           child.insert word[1..]
@@ -62,6 +73,7 @@ Translating this into CoffeeScript:
       newChild.insert word[1..]
 
 ### Words
+
 
 ### Suffixes
 
