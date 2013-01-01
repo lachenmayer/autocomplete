@@ -3,8 +3,8 @@ class TrieNode
     @isWord = false
 
   insert: (word) ->
-    if word.length == 0
-      @isWord = true
+    if word.length is 0
+      @isWord = true if @char isnt ''
       return
     for child in @children
       if word[0] == child.char
@@ -14,10 +14,22 @@ class TrieNode
     @children.push newChild
     newChild.insert word[1..]
 
+  remove: (word) ->
+    if word.length is 0
+      return
+    for child, i in @children
+      continue unless child?
+      if child.char is word[0]
+        child.remove word[1..]
+        if child.children.length is 0
+          @children.splice i, 1
+        else if word.length is 1 and child.isWord
+          child.isWord = false
+
   contains: (word) ->
-    return true if word.length == 0
-    if word[0] == @char
-      return true if word.length == 1
+    return true if word.length is 0
+    if word[0] is @char
+      return true if word.length is 1
       for child in @children
         return true if child.contains word[1..]
     else
@@ -26,12 +38,12 @@ class TrieNode
     return false
 
   words: ->
-    if @children.length == 0 and @char? # leaf node
+    if @children.length is 0 and @char isnt '' # leaf node
       return @char
     words = []
     for child in @children
       words = words.concat child.words()
-    return words if not @char? # root node
+    return words if @char is '' # root node
     words = ((@char + word) for word in words)
     words.push @char if @isWord
     return words
@@ -54,12 +66,11 @@ class TrieNode
       suffixes = suffixes.concat child.words()
     return suffixes
 
-
-root = new TrieNode
-root.insert "bla"
-root.insert "blue"
-root.insert "bled"
-root.insert "bloom"
-
-console.log root.suffixes "bl"
-
+t = new TrieNode
+t.insert "hel"
+t.insert "hell"
+t.insert "hello"
+t.insert "hull"
+t.insert "help"
+t.remove "hell"
+console.log t.words()
