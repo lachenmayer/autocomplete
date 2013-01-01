@@ -56,38 +56,46 @@ class TrieNode
       suffixes = suffixes.concat child.words()
     return suffixes
 
-getSelectedWord = (text, pos) ->
-  begin = pos
-  while /\w/.test text[--begin]
-    break if begin < 0
-  text.slice begin+1, pos
-
-insertWords = ->
-  autocompleteWords = new TrieNode
-  words = $('textarea').val().split /\W/
-  for word in words
-    autocompleteWords.insert word
-  autocompleteWords
-
-String.prototype.insertAt = (pos, str) ->
-  this[0...pos] + str + this[pos..]
-
-String.prototype.removeAt = (pos, length) ->
-  this[0...pos] + this[pos+length..]
-
 class Completion
-  constructor: (@elem, @pos, @suggestions,
-                @currentSuggestion = 0) ->
+  String.prototype.insertAt = (pos, str) ->
+    this[0...pos] + str + this[pos..]
+
+  String.prototype.removeAt = (pos, length) ->
+    this[0...pos] + this[pos+length..]
+
+  constructor: (@elem) ->
+    @rawElem = @elem[0]
+    @cursorPosition = @rawElem.selectionStart
+    @text = @elem.val()
+    @currentSuggestion = 0
+    @getSuggestions()
+
+  getSuggestions: ->
+    suggestionTree = new TrieNode
+    words = @text.split /\W/
+    for word in words
+      suggestionTree.insert word
+    @suggestions = suggestionTree.suffixes @getSelectedWord()
+
+  setText: (newText) ->
+    @elem.val newText
+    @text = newText
+
+  getSelectedWord: ->
+    begin = @cursorPosition
+    while /\w/.test @text[--begin]
+      break if begin < 0
+    @text.slice begin+1, @cursorPosition
 
   getCurrentSuggestion: ->
     @suggestions[@currentSuggestion % @suggestions.length]
 
   insertSuggestion: ->
-    @elem.val @elem.val().insertAt @pos, @getCurrentSuggestion()
+    @setText @text.insertAt @cursorPosition, @getCurrentSuggestion()
     @setCursor()
 
   removeSuggestion: ->
-    @elem.val @elem.val().removeAt @pos, @getCurrentSuggestion().length
+    @setText @text.removeAt @cursorPosition, @getCurrentSuggestion().length
 
   cycleSuggestions: ->
     @removeSuggestion()
@@ -95,9 +103,8 @@ class Completion
     @insertSuggestion()
 
   setCursor: ->
-    elem = @elem[0]
-    cursorPos = @pos + @getCurrentSuggestion().length
-    elem.selectionStart = elem.selectionEnd = cursorPos
+    updatedPosition = @cursorPosition + @getCurrentSuggestion().length
+    @rawElem.selectionStart = @rawElem.selectionEnd = updatedPosition
 
   completeNext: ->
     return if @suggestions.length is 0
@@ -110,17 +117,15 @@ class Completion
 jQuery.fn.autocomplete = ->
   $this = this
   completion = null
+  @click (e) ->
+    completion = null
   @keydown (e) ->
     if e.keyCode isnt TAB_KEY
       completion = null
       return
     e.preventDefault()
     unless completion?
-      words = insertWords()
-      text = $this.val()
-      pos = @selectionStart
-      suggestions = words.suffixes getSelectedWord text, pos
-      completion = new Completion $this, pos, suggestions
+      completion = new Completion $this
     completion.completeNext()
 
 $ ->
